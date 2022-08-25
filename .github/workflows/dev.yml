@@ -38,8 +38,8 @@ jobs:
       - name: Build project and UnitTest
         run: ./gradlew assembleDebug compileDebugUnitTestKotlin
 
-      - name: Spotless
-        run: ./gradlew spotlessCheck
+      #- name: Spotless
+        #run: ./gradlew spotlessCheck
 
       - name: Robolectric
         run: ./gradlew testDebugUnitTest
