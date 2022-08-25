@@ -1,20 +1,26 @@
 plugins {
     id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
+apply from: '../jacoco.gradle'
+
 android {
-    compileSdk 33
+    compileSdkVersion 33
 
     defaultConfig {
-        minSdk 21
-        targetSdk 33
+        minSdkVersion 21
+        targetSdkVersion 33
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
+        debug{
+            testCoverageEnabled true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -30,11 +36,45 @@ android {
 }
 
 dependencies {
+    implementation project(':domain')
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'javax.inject:javax.inject:1'
 
-    implementation 'androidx.core:core-ktx:1.8.0'
-    implementation 'androidx.appcompat:appcompat:1.5.0'
-    implementation 'com.google.android.material:material:1.6.1'
-    testImplementation 'junit:junit:4.13.2'
+    api "com.squareup.moshi:moshi-kotlin:$moshiVersion"
+    //api "com.squareup.moshi:moshi-adapters:$moshiVersion"
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion"
+
+    // Retrofit for networking
+    api "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    api "com.squareup.retrofit2:converter-moshi:$retrofitVersion"
+
+    api "androidx.room:room-ktx:$roomVersion"
+    api "androidx.room:room-runtime:$roomVersion"
+    kapt "androidx.room:room-compiler:$roomVersion"
+
+    implementation 'com.google.guava:guava:31.1-jre'
+    // AndroidX Test - JVM testing
+    testImplementation "androidx.test:core-ktx:1.4.0"
+    testImplementation "androidx.test.ext:junit-ktx:1.1.3"
+    testImplementation "androidx.test:rules:1.4.0"
+    implementation "androidx.test:core:1.4.0"
+
+    // AndroidX Test - Instrumented testing
+    androidTestImplementation "androidx.test:core-ktx:1.4.0"
+    androidTestImplementation "androidx.test.ext:junit-ktx:1.1.3"
+    androidTestImplementation "androidx.test:rules:1.4.0"
+    androidTestImplementation 'androidx.room:room-testing:2.4.3'
+    androidTestImplementation "androidx.arch.core:core-testing:2.1.0"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
+
+    testImplementation "com.google.dagger:hilt-android-testing:$hiltVersion"
+    kaptTest "com.google.dagger:hilt-compiler:$hiltVersion"
+    testImplementation "com.squareup.okhttp3:mockwebserver:$okHttpVersion"
+
+    testImplementation "org.robolectric:robolectric:4.8.1"
+    testImplementation "androidx.arch.core:core-testing:2.1.0"
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }

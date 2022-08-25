@@ -34,8 +34,10 @@ fun Greeting(name: String) {
     Text(text = "Hello $name!")
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF00FF00,
-    widthDp = 50, heightDp = 50)
+@Preview(showBackground = true,
+    backgroundColor = 0xFF00FF00,
+    //widthDp = 50, heightDp = 50
+)
 //@CombinedPreviews
 @Preview(showSystemUi = true)
 

@@ -1,17 +1,22 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'dagger.hilt.android.plugin'
+    id 'kotlin-kapt'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
+apply from: '../jacoco.gradle'
+
 android {
-    compileSdk 33
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.xbf97.shuucan"
-        minSdk 21
-        targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -20,11 +25,40 @@ android {
     }
 
     buildTypes {
-        release {
+        debug{
+            versionNameSuffix ".debug"
             minifyEnabled false
+            debuggable true
+            testCoverageEnabled true
+        }
+
+        release {
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            testProguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguardTest-rules.pro'
         }
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+        unitTests.all {
+            maxHeapSize = "2g"
+            maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+            forkEvery = 100
+            testLogging {
+                events "passed", "skipped", "failed", "standardOut", "standardError"
+            }
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -36,7 +70,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion compose_compiler_version
+        kotlinCompilerExtensionVersion composeCompilerVersion
     }
     packagingOptions {
         resources {
@@ -51,29 +85,52 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.8.0'
 
     // LIFECYCLE
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$archLifecycleVersion"
+    kapt "androidx.lifecycle:lifecycle-compiler:$archLifecycleVersion"
 
     // COROUTINE
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
 
     // COMPOSE
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-
-    implementation "androidx.activity:activity-compose:$activity_compose_version"
-    implementation "androidx.navigation:navigation-compose:$navigation_compose_version"
+    implementation "androidx.compose.ui:ui:$composeVersion"
+    implementation "androidx.compose.ui:ui-tooling-preview:$composeVersion"
+    implementation "androidx.activity:activity-compose:$activity_composeVersion"
+    implementation "androidx.compose.ui:ui-tooling-preview:$composeVersion"
+    implementation "androidx.navigation:navigation-compose:$navigation_composeVersion"
+    //implementation "androidx.lifecycle:lifecycle-runtime-compose:$archLifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$archLifecycleVersion"
 
     // ACCOMPANIST
-    implementation "com.google.accompanist:accompanist-insets:$accompanist_version"
-    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
+    implementation "com.google.accompanist:accompanist-insets:$accompanistVersion"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion"
 
     // MATERIAL
-    implementation "androidx.compose.material:material:$compose_version"
-    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    implementation "androidx.compose.material:material:$composeVersion"
+    implementation "androidx.compose.material:material-icons-extended:$composeVersion"
+
+    // COMPOSE DEBUG
+    debugImplementation "androidx.compose.ui:ui-tooling:$composeVersion"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:$composeVersion"
+
+    // Dependency Injection
+    implementation "com.google.dagger:hilt-android:$hiltVersion"
+    implementation "androidx.hilt:hilt-navigation-compose:1.0.0"
+    kapt "com.google.dagger:hilt-compiler:$hiltVersion"
+
+    // Logging
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.4'
 
     // TEST
+    implementation 'androidx.test:runner:1.4.0'
     testImplementation 'junit:junit:4.13.2'
+
+    testImplementation "com.google.dagger:hilt-android-testing:$hiltVersion"
+    kaptAndroidTest "com.google.dagger:hilt-compiler:$hiltVersion"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
+    testImplementation "androidx.compose.ui:ui-test-junit4:$composeVersion"
 
     // TEST DEPENDENCIES
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
@@ -84,23 +141,8 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
 
     // COMPOSE UI TEST
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$composeVersion"
 
-    // COMPOSE DEBUG
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    kotlinOptions {
-        // Treat all Kotlin warnings as errors (disabled by default)
-        allWarningsAsErrors = project.hasProperty("warningsAsErrors") ? project.warningsAsErrors : false
-
-        freeCompilerArgs += '-opt-in=kotlin.RequiresOptIn'
-        // Enable experimental coroutines APIs, including Flow
-        freeCompilerArgs += '-opt-in=kotlin.Experimental'
-
-        // Set JVM target to 1.8
-        jvmTarget = "1.8"
-    }
+    testImplementation "org.robolectric:robolectric:4.8.1"
+    androidTestImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
