@@ -9,8 +9,6 @@ tasks.withType(Test) {
     // Necessary for JaCoCo to work with Robolectric
     jacoco.includeNoLocationClasses = true
 }
-
-
 /*
 jacocoTestReport {
     reports {
