@@ -34,10 +34,31 @@ fun Greeting(name: String) {
     Text(text = "Hello $name!")
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, backgroundColor = 0xFF00FF00,
+    widthDp = 50, heightDp = 50)
+//@CombinedPreviews
+@Preview(showSystemUi = true)
+
 @Composable
 fun DefaultPreview() {
     ShuucanTheme {
         Greeting("Android")
     }
 }
+/*
+class UserPreviewParameterProvider : PreviewParameterProvider<User> {
+    override val values = sequenceOf(
+        User("Elise"),
+        User("Frank"),
+        User("Julia")
+    )
+}*/
+/*
+@Preview
+@Composable
+fun UserProfilePreview(
+    @PreviewParameter(UserPreviewParameterProvider::class, limit = 2) user: User
+) {
+    UserProfile(user)
+}*/
+
